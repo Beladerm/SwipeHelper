@@ -127,7 +127,7 @@ abstract class SwipeHelper(private val recyclerView: RecyclerView) :
     override fun getSwipeThreshold(viewHolder: RecyclerView.ViewHolder): Float {
         val position = viewHolder.adapterPosition
         val progress = swipeProgressMap.getOrDefault(position, 0f)
-        val swipeThreshold = if (progress > 0.4) 15f else 0.05f
+        val swipeThreshold = if (progress > 0.4) 1f else 0.05f
         Log.d("AAA", "вызвали getSwipeThreshold $swipeThreshold")
         return swipeThreshold
     }
