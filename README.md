@@ -18,7 +18,7 @@
 
 1. Клонируйте репозиторий:
     ```bash
-    git clone https://github.com/yourusername/SwipeHelperExample.git
+    git clone https://github.com/Beladerm/SwipeHelperExample.git
     ```
 2. Откройте проект в Android Studio.
 3. Соберите и запустите проект на вашем Android устройстве или эмуляторе.
