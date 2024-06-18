@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.ColorRes
@@ -18,6 +19,7 @@ import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 
+@SuppressLint("ClickableViewAccessibility")
 abstract class SwipeHelper(private val recyclerView: RecyclerView) :
     ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
 
@@ -116,6 +118,29 @@ abstract class SwipeHelper(private val recyclerView: RecyclerView) :
         return false
     }
 
+    override fun getSwipeEscapeVelocity(defaultValue: Float): Float {
+        Log.d("AAA", "вызвали getSwipeEscapeVelocity $defaultValue")
+        return  defaultValue
+    }
+
+
+    override fun getSwipeThreshold(viewHolder: RecyclerView.ViewHolder): Float {
+        val position = viewHolder.adapterPosition
+        val progress = swipeProgressMap.getOrDefault(position, 0f)
+        val swipeThreshold = if (progress > 0.4) 15f else 0.05f
+        Log.d("AAA", "вызвали getSwipeThreshold $swipeThreshold")
+        return swipeThreshold
+    }
+
+    override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+        super.clearView(recyclerView, viewHolder)
+        swipeProgressMap.remove(viewHolder.adapterPosition)
+    }
+
+    override fun getSwipeVelocityThreshold(defaultValue: Float): Float {
+        Log.d("AAA", "вызвали getSwipeVelocityThreshold $defaultValue")
+        return defaultValue
+    }
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
         val position = viewHolder.adapterPosition
         if (swipedPosition != position) recoverQueue.add(swipedPosition)
@@ -139,10 +164,8 @@ abstract class SwipeHelper(private val recyclerView: RecyclerView) :
         private val clickListener: UnderlayButtonClickListener
     ) {
         private var clickableRegion: RectF? = null
-        private val textSizeInPixel: Float =
-            textSize * context.resources.displayMetrics.density // dp to px
-        private val iconSizeInPixel: Float =
-            iconSize?.let { it * context.resources.displayMetrics.density } ?: 100f
+        private val textSizeInPixel: Float = textSize * context.resources.displayMetrics.density // dp to px
+        private val iconSizeInPixel: Float = iconSize?.let { it * context.resources.displayMetrics.density } ?: 100f
         private val horizontalPadding = 50.0f
         private val verticalPadding = horizontalPadding
         val intrinsicWidth: Float
@@ -158,11 +181,13 @@ abstract class SwipeHelper(private val recyclerView: RecyclerView) :
         }
 
         fun onDraw(canvas: Canvas, rect: RectF) {
+
             val paint = Paint()
 
             // Фон
             paint.color = ContextCompat.getColor(context, colorRes)
             canvas.drawRect(rect, paint)
+
 
             // Расчет размера иконки
             val iconLeft = rect.left + (rect.width() - iconSizeInPixel) / 2
@@ -182,7 +207,6 @@ abstract class SwipeHelper(private val recyclerView: RecyclerView) :
                 }
             }
 
-            // Отрисовка текста
             paint.color = ContextCompat.getColor(context, android.R.color.white)
             paint.textSize = textSizeInPixel
             paint.typeface = Typeface.DEFAULT
@@ -191,12 +215,14 @@ abstract class SwipeHelper(private val recyclerView: RecyclerView) :
             val titleBounds = Rect()
             paint.getTextBounds(title, 0, title.length, titleBounds)
 
-            // Отрисовка текста под иконкой
-            val textTop = iconTop + iconSizeInPixel + (verticalPadding / 2)
+            // Отрисовка текста под иконкой с одинаковым отступом от верхней и нижней границы кнопки
+            val textTop = iconTop + iconSizeInPixel + (verticalPadding / 2 ) // Расстояние от верха кнопки до верха текста
             val textY = textTop + titleBounds.height()
             canvas.drawText(title, rect.centerX(), textY, paint)
 
+
             clickableRegion = rect
+
         }
 
         fun handle(event: MotionEvent) {
